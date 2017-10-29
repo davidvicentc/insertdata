@@ -1,7 +1,10 @@
-<?php 
-	require_once 'config.inc.php';
+<?php
+	require_once 'app/Conexion.inc.php';
+	require_once 'app/Usuario.inc.php';
+	include_once 'app/RepositorioUsuario.inc.php';
+	include_once 'app/ValidadorRegistro.inc.php';
 	
-		$result = false;
+		/*$result = false;
 	if (!empty($_POST)) {
 
 		$name = $_POST['name'];
@@ -18,7 +21,28 @@
 		]);
 
 
+	}*/
+
+	if (isset($_POST['enviar'])) {
+		Conexion :: abrir_conexion();
+	$validador = new ValidadorRegistro($_POST['name'], $_POST['email'], $_POST['password'], Conexion :: obtener_conexion()); //todo lo que esta dentro del array de la variable $_POST son los nombre que le dimos a los inputs
+	if ($validador -> registro_validado()) {
+		$usuario = new Usuario('', $validador -> obtener_nombre(), 
+			$validador -> obtener_email(), 
+			password_hash($validador -> obtener_clave(), PASSWORD_DEFAULT), //password default algoritmo para encriptar contraseñas
+			'', 
+			'');
+
+		$usuario_insertado = RepositorioUsuario :: insertar_usuario(Conexion::obtener_conexion(), $usuario);
+
+		if ($usuario_insertado) {
+			echo '<div class="alert alert-success">Haz insertado un dato en la base!!!</div>';
+		}
 	}
+
+	Conexion :: cerrar_conexion();
+}
+
 
  ?>
 <!DOCTYPE html>
@@ -41,39 +65,18 @@
 			<div class="col-md-6">
 				<br>
 				<br>
-				<?php
-
-					if ($result == true) {
-						echo '<div class="alert alert-success">Haz insertado un dato en la base!!!</div>';
-
-					}
-				 ?>
 				<div class="panel panel-default">
 					<div class="panel-heading text-center">
 						<h4>Insert Post</h4>
 					</div>
 					<div class="panel-body text-center">
-						<form role="form" method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-						<h2>¡Introduce tus datos!</h2>
-						<br>
-							<div class="form-group">
-								<label for="name" class="sr-only">Tu nombre</label>
-								<input type="text" name="name" id="name" placeholder="nombre completo" class="form-control">
-							</div>
-							<div class="form-group">
-								<label for="email" class="sr-only">Email</label>
-								<input type="email" name="email" id="email" placeholder="Email" class="form-control">
-							</div>
-							<div class="form-group">
-								<label for="password" class="sr-only">Contraseña</label>
-								<input type="password" name="password" id="password" placeholder="Contraseña" class="form-control">
-							</div>
-							<div class="form-group">
-								<button type="submit" class="btn btn-lg btn-success btn-block">
-									Enviar
-								</button>
-							</div>
-						</form>
+						<?php 
+							if (isset($_POST['enviar'])) {
+									include_once 'plantillas/registro-validado.inc.php';
+								} else {
+									include_once 'plantillas/registro-vacio.inc.php';
+								}
+						 ?>
 						<br>
 					</div>
 				</div>
